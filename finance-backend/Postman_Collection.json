@@ -1,0 +1,731 @@
+{
+  "info": {
+    "name": "Finance Dashboard API - Complete Testing Suite",
+    "description": "Complete API collection for HR review - Test all endpoints with different roles",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "description": "Login and get access tokens",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.status === 'success') {",
+                  "    pm.environment.set('adminToken', response.data.accessToken);",
+                  "    pm.environment.set('refreshToken', response.data.refreshToken);",
+                  "    pm.environment.set('userId', response.data.user.id);",
+                  "    console.log('✅ Admin logged in successfully');",
+                  "    console.log('Token:', response.data.accessToken.substring(0, 50) + '...');",
+                  "} else {",
+                  "    console.log('❌ Login failed:', response.message);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@finance.com\",\n    \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Analyst",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.status === 'success') {",
+                  "    pm.environment.set('analystToken', response.data.accessToken);",
+                  "    console.log('✅ Analyst logged in successfully');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"analyst@finance.com\",\n    \"password\": \"Analyst@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Viewer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.status === 'success') {",
+                  "    pm.environment.set('viewerToken', response.data.accessToken);",
+                  "    console.log('✅ Viewer logged in successfully');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"viewer@finance.com\",\n    \"password\": \"Viewer@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"hr_test_{{$timestamp}}@example.com\",\n    \"password\": \"Test@123456\",\n    \"full_name\": \"HR Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User (Analyst)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Financial Records (Analyst)",
+      "description": "Test CRUD operations with Analyst role",
+      "item": [
+        {
+          "name": "Create Income Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 5000.00,\n    \"type\": \"income\",\n    \"category\": \"Salary\",\n    \"date\": \"2024-04-01\",\n    \"description\": \"Monthly salary\",\n    \"notes\": \"April 2024 salary\",\n    \"tags\": [\"work\", \"monthly\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"]
+            }
+          }
+        },
+        {
+          "name": "Create Expense Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 150.00,\n    \"type\": \"expense\",\n    \"category\": \"Groceries\",\n    \"date\": \"2024-04-02\",\n    \"description\": \"Weekly grocery shopping\",\n    \"tags\": [\"food\", \"essential\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"]
+            }
+          }
+        },
+        {
+          "name": "Create Multiple Records for Testing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 2000.00,\n    \"type\": \"expense\",\n    \"category\": \"Rent\",\n    \"date\": \"2024-04-01\",\n    \"description\": \"Monthly rent\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"]
+            }
+          }
+        },
+        {
+          "name": "Get All Records with Pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Records by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records?type=income",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "income"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Records by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records?start_date=2024-04-01&end_date=2024-04-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-04-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-04-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records?search=salary",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "salary"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Record Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["records", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Update Record (Use recordId from previous response)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 5500.00,\n    \"description\": \"Updated salary with bonus\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records/{{recordId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["records", "{{recordId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Dashboard & Analytics",
+      "description": "Test dashboard summaries and analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/summary?start_date=2024-04-01&end_date=2024-04-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "summary"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-04-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-04-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Category Breakdown",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Monthly Trends (6 months)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/trends?months=6",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "trends"],
+              "query": [
+                {
+                  "key": "months",
+                  "value": "6"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Smart Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/insights",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "insights"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Activity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/recent?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "recent"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Role-Based Access Control Testing",
+      "description": "Test what different roles can and cannot do",
+      "item": [
+        {
+          "name": "[VIEWER] Try to Create Record (Should Fail - 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{viewerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 100.00,\n    \"type\": \"expense\",\n    \"category\": \"Test\",\n    \"date\": \"2024-04-04\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"]
+            }
+          }
+        },
+        {
+          "name": "[VIEWER] Try to Delete Record (Should Fail - 403)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{viewerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/records/{{recordId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["records", "{{recordId}}"]
+            }
+          }
+        },
+        {
+          "name": "[ANALYST] Create Record (Should Succeed - 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analystToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 200.00,\n    \"type\": \"expense\",\n    \"category\": \"Entertainment\",\n    \"date\": \"2024-04-04\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/records",
+              "host": ["{{baseUrl}}"],
+              "path": ["records"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. User Management (Admin Only)",
+      "description": "These endpoints only work with Admin token",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create New User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"newemployee@company.com\",\n    \"password\": \"Employee@123\",\n    \"full_name\": \"New Employee\",\n    \"role_id\": \"role-uuid-here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Change User Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role_id\": \"role-uuid-for-analyst\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "role"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://finance-backend-api.vercel.app/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "analystToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "viewerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recordId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

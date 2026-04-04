@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Review Guide - Finance Dashboard API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0 5px;
+        }
+        .badge-admin { background: #fee2e2; color: #dc2626; }
+        .badge-analyst { background: #dcfce7; color: #16a34a; }
+        .badge-viewer { background: #fed7aa; color: #ea580c; }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .card h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        .role-card {
+            text-align: center;
+            border-top: 4px solid;
+        }
+        .role-card.admin { border-color: #dc2626; }
+        .role-card.analyst { border-color: #16a34a; }
+        .role-card.viewer { border-color: #ea580c; }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-secondary {
+            background: #64748b;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        
+        .test-steps {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin: 10px 0;
+        }
+        .endpoint-list {
+            list-style: none;
+            padding: 0;
+        }
+        .endpoint-list li {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-family: monospace;
+        }
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .method.get { background: #10b981; color: white; }
+        .method.post { background: #3b82f6; color: white; }
+        .method.put { background: #f59e0b; color: white; }
+        .method.delete { background: #ef4444; color: white; }
+        .method.patch { background: #8b5cf6; color: white; }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8rem; }
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Finance Dashboard API - HR Review Guide</h1>
+            <p>Complete testing guide for evaluating the backend implementation</p>
+            <div style="margin-top: 20px;">
+                <span class="badge badge-admin">Admin Access</span>
+                <span class="badge badge-analyst">Analyst Access</span>
+                <span class="badge badge-viewer">Viewer Access</span>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid-3">
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem;">📖</div>
+                <h3>Swagger Documentation</h3>
+                <p>Interactive API documentation with live testing</p>
+                <a href="/api-docs" target="_blank" class="btn">Open Swagger UI →</a>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem;">📮</div>
+                <h3>Postman Collection</h3>
+                <p>Download and import to Postman for testing</p>
+                <a href="/api/postman-collection.json" download class="btn btn-secondary">Download Collection →</a>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div style="font-size: 3rem;">💻</div>
+                <h3>GitHub Repository</h3>
+                <p>View source code and documentation</p>
+                <a href="https://github.com/yourusername/finance-backend" target="_blank" class="btn btn-secondary">View on GitHub →</a>
+            </div>
+        </div>
+
+        <!-- Test Accounts -->
+        <div class="grid-3">
+            <div class="card role-card admin">
+                <div style="font-size: 3rem;">👑</div>
+                <h3>Admin Account</h3>
+                <p><strong>Email:</strong> admin@finance.com</p>
+                <p><strong>Password:</strong> Admin@123456</p>
+                <p><strong>Permissions:</strong> Full system access</p>
+                <div class="test-steps" style="margin-top: 15px;">
+                    <strong>Can do:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>✅ Create/Update/Delete any record</li>
+                        <li>✅ View all users' data</li>
+                        <li>✅ Manage user roles</li>
+                        <li>✅ Access all analytics</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card role-card analyst">
+                <div style="font-size: 3rem;">📊</div>
+                <h3>Analyst Account</h3>
+                <p><strong>Email:</strong> analyst@finance.com</p>
+                <p><strong>Password:</strong> Analyst@123456</p>
+                <p><strong>Permissions:</strong> Create and manage records</p>
+                <div class="test-steps" style="margin-top: 15px;">
+                    <strong>Can do:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>✅ Create/Update/Delete own records</li>
+                        <li>✅ View dashboard and analytics</li>
+                        <li>✅ Access insights and trends</li>
+                        <li>❌ Cannot manage users</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card role-card viewer">
+                <div style="font-size: 3rem;">👀</div>
+                <h3>Viewer Account</h3>
+                <p><strong>Email:</strong> viewer@finance.com</p>
+                <p><strong>Password:</strong> Viewer@123456</p>
+                <p><strong>Permissions:</strong> Read-only access</p>
+                <div class="test-steps" style="margin-top: 15px;">
+                    <strong>Can do:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>✅ View own records</li>
+                        <li>✅ View dashboard summary</li>
+                        <li>❌ Cannot create records</li>
+                        <li>❌ Cannot update/delete</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Steps -->
+        <div class="card">
+            <h3>📝 Step-by-Step Testing Guide</h3>
+            <div class="test-steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <strong>Open Swagger Documentation</strong>
+                    <p>Click the "Open Swagger UI" button above or visit <code>/api-docs</code> endpoint.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <strong>Login to Get Token</strong>
+                    <p>Use the <code>POST /auth/login</code> endpoint with any test account:</p>
+                    <pre>{
+  "email": "analyst@finance.com",
+  "password": "Analyst@123456"
+}</pre>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <strong>Authorize in Swagger</strong>
+                    <p>Click the "Authorize" button and enter: <code>Bearer YOUR_ACCESS_TOKEN</code></p>
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <strong>Test Endpoints by Role</strong>
+                    <p>Try different endpoints with different roles to verify RBAC:</p>
+                    <ul>
+                        <li><strong>Analyst:</strong> Test POST, PUT, DELETE on /records</li>
+                        <li><strong>Viewer:</strong> Try the same operations - they should fail with 403</li>
+                        <li><strong>Admin:</strong> Test GET /users and user management</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <strong>Test Filtering and Pagination</strong>
+                    <p>Use query parameters on <code>GET /records</code>:</p>
+                    <pre>?type=income&start_date=2024-04-01&end_date=2024-04-30&page=1&limit=10</pre>
+                </div>
+                <div class="step">
+                    <span class="step-number">6</span>
+                    <strong>Test Analytics</strong>
+                    <p>Check dashboard endpoints for summaries and insights:</p>
+                    <ul>
+                        <li><code>GET /dashboard/summary</code> - Overview stats</li>
+                        <li><code>GET /dashboard/trends</code> - Monthly trends</li>
+                        <li><code>GET /dashboard/insights</code> - Smart insights</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Endpoints Summary -->
+        <div class="card">
+            <h3>📋 Complete API Endpoints</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>🔐 Authentication</h4>
+                    <ul class="endpoint-list">
+                        <li><span class="method post">POST</span> /auth/register</li>
+                        <li><span class="method post">POST</span> /auth/login</li>
+                        <li><span class="method post">POST</span> /auth/logout</li>
+                        <li><span class="method post">POST</span> /auth/refresh-token</li>
+                        <li><span class="method get">GET</span> /auth/me</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>💰 Financial Records</h4>
+                    <ul class="endpoint-list">
+                        <li><span class="method get">GET</span> /records</li>
+                        <li><span class="method post">POST</span> /records</li>
+                        <li><span class="method get">GET</span> /records/:id</li>
+                        <li><span class="method put">PUT</span> /records/:id</li>
+                        <li><span class="method delete">DELETE</span> /records/:id</li>
+                        <li><span class="method get">GET</span> /records/stats</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>📊 Dashboard</h4>
+                    <ul class="endpoint-list">
+                        <li><span class="method get">GET</span> /dashboard/summary</li>
+                        <li><span class="method get">GET</span> /dashboard/categories</li>
+                        <li><span class="method get">GET</span> /dashboard/trends</li>
+                        <li><span class="method get">GET</span> /dashboard/insights</li>
+                        <li><span class="method get">GET</span> /dashboard/recent</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>👥 User Management (Admin)</h4>
+                    <ul class="endpoint-list">
+                        <li><span class="method get">GET</span> /users</li>
+                        <li><span class="method get">GET</span> /users/:id</li>
+                        <li><span class="method post">POST</span> /users</li>
+                        <li><span class="method put">PUT</span> /users/:id</li>
+                        <li><span class="method patch">PATCH</span> /users/:id/role</li>
+                        <li><span class="method delete">DELETE</span> /users/:id</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample API Calls -->
+        <div class="card">
+            <h3>🚀 Sample API Calls for Quick Testing</h3>
+            
+            <h4>Login as Analyst:</h4>
+            <pre>curl -X POST https://finance-backend-api.vercel.app/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "analyst@finance.com",
+    "password": "Analyst@123456"
+  }'</pre>
+
+            <h4>Create Expense Record:</h4>
+            <pre>curl -X POST https://finance-backend-api.vercel.app/api/v1/records \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 150.00,
+    "type": "expense",
+    "category": "Groceries",
+    "date": "2024-04-04",
+    "description": "Weekly shopping"
+  }'</pre>
+
+            <h4>Get Dashboard with Filters:</h4>
+            <pre>curl -X GET "https://finance-backend-api.vercel.app/api/v1/dashboard/summary?start_date=2024-04-01&end_date=2024-04-30" \
+  -H "Authorization: Bearer YOUR_TOKEN"</pre>
+        </div>
+
+        <!-- Evaluation Checklist -->
+        <div class="card">
+            <h3>✅ HR Evaluation Checklist</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>Functionality</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>✅ User registration and login</li>
+                        <li>✅ Create financial records</li>
+                        <li>✅ Update records</li>
+                        <li>✅ Delete records (soft delete)</li>
+                        <li>✅ View records with filters</li>
+                        <li>✅ Pagination working</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Role-Based Access</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>✅ Admin has full access</li>
+                        <li>✅ Analyst can create/update/delete</li>
+                        <li>✅ Viewer is read-only</li>
+                        <li>✅ Permissions enforced on API level</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Analytics</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>✅ Dashboard summary</li>
+                        <li>✅ Category breakdown</li>
+                        <li>✅ Monthly trends</li>
+                        <li>✅ Smart insights</li>
+                        <li>✅ Date range filtering</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Security & Validation</h4>
+                    <ul style="margin-left: 20px;">
+                        <li>✅ JWT authentication</li>
+                        <li>✅ Input validation</li>
+                        <li>✅ Rate limiting</li>
+                        <li>✅ Error handling</li>
+                        <li>✅ SQL injection protection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h3 style="color: white;">📧 Need Help?</h3>
+            <p>For any issues during testing, please contact:</p>
+            <p><strong>Email:</strong> support@finance-dashboard.com</p>
+            <p><strong>GitHub Issues:</strong> <a href="https://github.com/yourusername/finance-backend/issues" style="color: white; text-decoration: underline;">Create an issue</a></p>
+        </div>
+    </div>
+</body>
+</html>

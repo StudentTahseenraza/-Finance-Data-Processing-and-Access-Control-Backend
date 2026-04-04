@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Testing Guide - Finance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .role-card {
+            display: inline-block;
+            width: 30%;
+            margin: 1%;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .role-admin { background: #fee2e2; border-left: 4px solid #ef4444; }
+        .role-analyst { background: #dcfce7; border-left: 4px solid #10b981; }
+        .role-viewer { background: #fed7aa; border-left: 4px solid #f59e0b; }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #2563eb; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Finance Dashboard API Testing Guide</h1>
+            <p>Complete guide for HR reviewers to test all endpoints</p>
+        </div>
+
+        <div class="card">
+            <h2>🔐 Test Accounts</h2>
+            <div>
+                <div class="role-card role-admin">
+                    <h3>👑 Admin</h3>
+                    <p><strong>Email:</strong> admin@finance.com</p>
+                    <p><strong>Password:</strong> Admin@123456</p>
+                    <p><strong>Permissions:</strong> Full access to everything</p>
+                </div>
+                <div class="role-card role-analyst">
+                    <h3>📊 Analyst</h3>
+                    <p><strong>Email:</strong> analyst@finance.com</p>
+                    <p><strong>Password:</strong> Analyst@123456</p>
+                    <p><strong>Permissions:</strong> Can create/update/delete records</p>
+                </div>
+                <div class="role-card role-viewer">
+                    <h3>👀 Viewer</h3>
+                    <p><strong>Email:</strong> viewer@finance.com</p>
+                    <p><strong>Password:</strong> Viewer@123456</p>
+                    <p><strong>Permissions:</strong> Read-only access</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📖 How to Test APIs</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Open Swagger Documentation</strong>
+                <p>Click the button below to open interactive API documentation</p>
+                <a href="/api-docs" target="_blank" class="btn">🚀 Open Swagger UI</a>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Authorize / Login</strong>
+                <p>In Swagger UI, click the <code>Authorize</code> button and login with one of the test accounts above.</p>
+                <p>First, call the <code>POST /auth/login</code> endpoint, then copy the <code>accessToken</code> from response.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Set Token for Authentication</strong>
+                <p>After getting the token, click <code>Authorize</code> button and enter: <code>Bearer YOUR_TOKEN_HERE</code></p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Test Different Roles</strong>
+                <p>Login with different roles to see different permissions:</p>
+                <ul>
+                    <li><strong>Admin</strong> - Can see all endpoints including user management</li>
+                    <li><strong>Analyst</strong> - Can create, update, delete records</li>
+                    <li><strong>Viewer</strong> - Can only view data, cannot modify</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧪 API Testing Flow</h2>
+            <ol style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>Authentication</strong> - Call <code>POST /auth/login</code> to get token</li>
+                <li><strong>Create Records</strong> - Use <code>POST /records</code> to add transactions</li>
+                <li><strong>View Records</strong> - Use <code>GET /records</code> with filters</li>
+                <li><strong>Dashboard</strong> - Check <code>GET /dashboard/summary</code> for overview</li>
+                <li><strong>Analytics</strong> - Use <code>GET /dashboard/trends</code> for charts</li>
+                <li><strong>Update/Delete</strong> - Modify or remove records</li>
+                <li><strong>User Management</strong> - Admin only: <code>GET /users</code></li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Sample API Calls</h2>
+            <h3>Login as Analyst:</h3>
+            <pre style="background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; overflow-x: auto;">
+curl -X POST https://your-api.com/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "analyst@finance.com",
+    "password": "Analyst@123456"
+  }'
+            </pre>
+
+            <h3>Create an Expense Record:</h3>
+            <pre style="background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; overflow-x: auto;">
+curl -X POST https://your-api.com/api/v1/records \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 150.00,
+    "type": "expense",
+    "category": "Groceries",
+    "date": "2024-04-04",
+    "description": "Weekly grocery shopping"
+  }'
+            </pre>
+
+            <h3>Get Dashboard Summary:</h3>
+            <pre style="background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; overflow-x: auto;">
+curl -X GET "https://your-api.com/api/v1/dashboard/summary?start_date=2024-04-01&end_date=2024-04-30" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+            </pre>
+        </div>
+
+        <div class="card">
+            <h2>✅ What to Test as HR Reviewer</h2>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+                <li>✅ <strong>Authentication</strong> - Login/Register functionality</li>
+                <li>✅ <strong>Role-Based Access</strong> - Verify different permissions for Admin/Analyst/Viewer</li>
+                <li>✅ <strong>CRUD Operations</strong> - Create, Read, Update, Delete records</li>
+                <li>✅ <strong>Filtering & Search</strong> - Test all filter parameters</li>
+                <li>✅ <strong>Dashboard Analytics</strong> - Check summary, trends, insights</li>
+                <li>✅ <strong>Pagination</strong> - Test page and limit parameters</li>
+                <li>✅ <strong>Error Handling</strong> - Try invalid inputs to see error responses</li>
+                <li>✅ <strong>Security</strong> - Ensure unauthorized access is blocked</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Quick Links</h2>
+            <p>
+                <a href="/api-docs" class="btn" style="margin-right: 10px;">📖 Interactive API Docs</a>
+                <a href="/api-docs.json" class="btn" style="background: #10b981;">📄 Download OpenAPI Spec</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

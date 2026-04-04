@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: finance-backend-api
+    env: node
+    buildCommand: npm install
+    startCommand: node src/app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: API_VERSION
+        value: v1
+      - key: API_PREFIX
+        value: /api
+      - key: DB_HOST
+        fromDatabase:
+          name: finance-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: finance-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: finance-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: finance-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: finance-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: BCRYPT_ROUNDS
+        value: 10
+      - key: CORS_ORIGIN
+        value: https://your-frontend-url.onrender.com
+      - key: REDIS_HOST
+        value: redis
+      - key: REDIS_PORT
+        value: 6379
+
+  - type: redis
+    name: finance-redis
+    plan: free
+
+databases:
+  - name: finance-db
+    databaseName: finance_db
+    plan: free
