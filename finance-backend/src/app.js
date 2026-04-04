@@ -60,6 +60,82 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Database connection
 connectDB();
 
+// Setup endpoint to initialize database
+app.get('/api/setup', async (req, res) => {
+  try {
+    const { sequelize } = require('./config/database');
+    const Role = require('./models/Role');
+    const User = require('./models/User');
+    
+    // Force sync
+    await sequelize.sync({ force: true });
+    
+    // Create roles
+    const roles = await Role.bulkCreate([
+      {
+        name: 'admin',
+        permissions: Role.PERMISSIONS.ADMIN,
+        description: 'Full system access',
+        is_system: true,
+      },
+      {
+        name: 'analyst',
+        permissions: Role.PERMISSIONS.ANALYST,
+        description: 'Can view and create records',
+        is_system: true,
+      },
+      {
+        name: 'viewer',
+        permissions: Role.PERMISSIONS.VIEWER,
+        description: 'Read-only access',
+        is_system: true,
+      },
+    ]);
+    
+    // Create admin user
+    const adminRole = roles.find(r => r.name === 'admin');
+    await User.create({
+      email: 'admin@finance.com',
+      password_hash: 'Admin@123456',
+      full_name: 'System Administrator',
+      role_id: adminRole.id,
+      status: 'active',
+    });
+    
+    // Create analyst user
+    const analystRole = roles.find(r => r.name === 'analyst');
+    await User.create({
+      email: 'analyst@finance.com',
+      password_hash: 'Analyst@123456',
+      full_name: 'Financial Analyst',
+      role_id: analystRole.id,
+      status: 'active',
+    });
+    
+    // Create viewer user
+    const viewerRole = roles.find(r => r.name === 'viewer');
+    await User.create({
+      email: 'viewer@finance.com',
+      password_hash: 'Viewer@123456',
+      full_name: 'Dashboard Viewer',
+      role_id: viewerRole.id,
+      status: 'active',
+    });
+    
+    res.json({ 
+      message: 'Database setup complete!',
+      users: {
+        admin: 'admin@finance.com / Admin@123456',
+        analyst: 'analyst@finance.com / Analyst@123456',
+        viewer: 'viewer@finance.com / Viewer@123456'
+      }
+    });
+  } catch (error) {
+    console.error('Setup error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Redis connection (optional)
 redisClient.connect().catch(err => {
   console.warn('Redis connection failed, continuing without cache');

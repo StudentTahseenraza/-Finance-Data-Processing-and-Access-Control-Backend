@@ -3,29 +3,23 @@ const logger = require('../utils/logger');
 
 let sequelize;
 
-// Prefer DATABASE_URL if available
+// Use DATABASE_URL or individual variables
 if (process.env.DATABASE_URL) {
   console.log('✅ Using DATABASE_URL connection');
-  console.log('Database URL:', process.env.DATABASE_URL.replace(/:[^:@]*@/, ':****@'));
-  
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Required for Render
+        rejectUnauthorized: false,
       },
     },
-    logging: (msg) => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(msg);
-      }
-    },
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
+    logging: false,
+    define: {
+      underscored: true, // This will map createdAt -> created_at
+      timestamps: true,
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
     },
   });
 } else {
@@ -45,11 +39,11 @@ if (process.env.DATABASE_URL) {
         },
       },
       logging: false,
-      pool: {
-        max: 10,
-        min: 0,
-        acquire: 30000,
-        idle: 10000,
+      define: {
+        underscored: true,
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
       },
     }
   );
@@ -60,16 +54,14 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
     
-    // Sync models (create tables if they don't exist)
-    await sequelize.sync({ alter: false });
+    // Force sync to create all tables with correct schema
+    // Use { force: true } to recreate tables (only for first deployment)
+    await sequelize.sync({ alter: true });
     console.log('✅ Database models synchronized');
     
     return true;
   } catch (error) {
     console.error('❌ Database connection error:', error.message);
-    console.error('Please check:');
-    console.error('1. DATABASE_URL or DB_NAME is correct');
-    console.error('2. Database exists on Render');
     return false;
   }
 };

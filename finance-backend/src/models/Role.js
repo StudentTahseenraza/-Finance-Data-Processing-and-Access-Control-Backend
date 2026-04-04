@@ -29,9 +29,12 @@ const Role = sequelize.define('Role', {
   },
 }, {
   tableName: 'roles',
+  underscored: true,
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
 });
 
-// Permission definitions
 Role.PERMISSIONS = {
   VIEWER: {
     canViewDashboard: true,

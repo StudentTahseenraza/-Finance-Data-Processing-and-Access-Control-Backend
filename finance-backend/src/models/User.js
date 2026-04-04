@@ -61,6 +61,10 @@ const User = sequelize.define('User', {
   },
 }, {
   tableName: 'users',
+  underscored: true,
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   hooks: {
     beforeCreate: async (user) => {
       if (user.password_hash) {
@@ -77,27 +81,8 @@ const User = sequelize.define('User', {
   },
 });
 
-// Instance methods
 User.prototype.validatePassword = async function(password) {
   return bcrypt.compare(password, this.password_hash);
-};
-
-User.prototype.incrementLoginAttempts = async function() {
-  this.login_attempts += 1;
-  if (this.login_attempts >= 5) {
-    this.lock_until = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
-  }
-  await this.save();
-};
-
-User.prototype.resetLoginAttempts = async function() {
-  this.login_attempts = 0;
-  this.lock_until = null;
-  await this.save();
-};
-
-User.prototype.isLocked = function() {
-  return this.lock_until && this.lock_until > new Date();
 };
 
 module.exports = User;
