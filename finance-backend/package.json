@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.js\"",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
+    "postinstall": "node scripts/seed-render.js",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"
   },
