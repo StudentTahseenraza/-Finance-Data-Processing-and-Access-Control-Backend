@@ -8,6 +8,7 @@
     "dev": "nodemon src/app.js",
     "build": "npm install",
     "seed": "node scripts/seed-render.js",
+    "reset-db": "node scripts/reset-db.js",
     "postinstall": "node scripts/seed-render.js || echo 'Seeding skipped - will run on first request'"
   },
   "dependencies": {

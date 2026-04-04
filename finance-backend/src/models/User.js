@@ -29,8 +29,11 @@ const User = sequelize.define('User', {
     },
   },
   status: {
-    type: DataTypes.ENUM('active', 'inactive', 'suspended'),
+    type: DataTypes.STRING(20),
     defaultValue: 'active',
+    validate: {
+      isIn: [['active', 'inactive', 'suspended']],
+    },
   },
   role_id: {
     type: DataTypes.UUID,
@@ -81,8 +84,30 @@ const User = sequelize.define('User', {
   },
 });
 
+// Instance methods
 User.prototype.validatePassword = async function(password) {
+  if (!password || !this.password_hash) {
+    return false;
+  }
   return bcrypt.compare(password, this.password_hash);
+};
+
+User.prototype.incrementLoginAttempts = async function() {
+  this.login_attempts += 1;
+  if (this.login_attempts >= 5) {
+    this.lock_until = new Date(Date.now() + 30 * 60 * 1000);
+  }
+  await this.save();
+};
+
+User.prototype.resetLoginAttempts = async function() {
+  this.login_attempts = 0;
+  this.lock_until = null;
+  await this.save();
+};
+
+User.prototype.isLocked = function() {
+  return this.lock_until && this.lock_until > new Date();
 };
 
 module.exports = User;

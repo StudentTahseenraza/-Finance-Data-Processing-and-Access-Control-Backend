@@ -60,6 +60,20 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Database connection
 connectDB();
 
+const initModels = () => {
+  try {
+    require('./models/index');
+    console.log('✅ Model associations loaded');
+  } catch (error) {
+    console.error('❌ Failed to load associations:', error.message);
+  }
+};
+
+// Call this after database connection
+connectDB().then(() => {
+  initModels();
+});
+
 // Setup endpoint to initialize database
 app.get('/api/setup', async (req, res) => {
   try {

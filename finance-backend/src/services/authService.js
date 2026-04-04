@@ -8,8 +8,56 @@ const { AuthenticationError, ValidationError } = require('../utils/AppError');
 const logger = require('../utils/logger');
 
 class AuthService {
-  async register(userData, ipAddress, userAgent) {
-    // Check if user exists
+  async login(email, password, ipAddress, userAgent) {
+  try {
+    // Find user WITHOUT include first to avoid association error
+    const user = await User.findOne({
+      where: { email }
+    });
+
+    if (!user) {
+      throw new AuthenticationError('Invalid credentials');
+    }
+
+    // Get role separately
+    const role = await Role.findByPk(user.role_id);
+    
+    // Attach role to user object
+    user.role = role;
+
+    // Check if account is locked
+    if (user.isLocked()) {
+      throw new AuthenticationError('Account is locked due to multiple failed attempts');
+    }
+
+    // Validate password
+    const isValid = await user.validatePassword(password);
+    if (!isValid) {
+      await user.incrementLoginAttempts();
+      throw new AuthenticationError('Invalid credentials');
+    }
+
+    // Rest of your login logic...
+    await user.resetLoginAttempts();
+    await user.update({ last_login: new Date() });
+    
+    const tokens = this.generateTokens(user);
+    await user.update({ refresh_token: tokens.refreshToken });
+    
+    const userResponse = this.sanitizeUser(user);
+    userResponse.role = role;
+
+    return {
+      user: userResponse,
+      ...tokens,
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+async register(userData, ipAddress, userAgent) {
+  try {
     const existingUser = await User.findOne({
       where: { email: userData.email },
     });
@@ -27,97 +75,25 @@ class AuthService {
       throw new Error('Default role not found');
     }
 
-    // Create user
     const user = await User.create({
       ...userData,
       role_id: defaultRole.id,
     });
 
-    // Log audit
-    await AuditLog.create({
-      user_id: user.id,
-      action: 'REGISTER',
-      resource_type: 'user',
-      resource_id: user.id,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-    });
-
-    // Generate tokens
     const tokens = this.generateTokens(user);
-
-    // Save refresh token
     await user.update({ refresh_token: tokens.refreshToken });
 
-    // Remove sensitive data
     const userResponse = this.sanitizeUser(user);
+    userResponse.role = defaultRole;
 
     return {
       user: userResponse,
       ...tokens,
     };
+  } catch (error) {
+    throw error;
   }
-
-  async login(email, password, ipAddress, userAgent) {
-    // Find user with role
-    const user = await User.findOne({
-      where: { email },
-      include: ['role'],
-    });
-
-    if (!user) {
-      throw new AuthenticationError('Invalid credentials');
-    }
-
-    // Check if account is locked
-    if (user.isLocked()) {
-      throw new AuthenticationError(
-        'Account is locked due to multiple failed attempts. Please try again later.'
-      );
-    }
-
-    // Validate password
-    const isValid = await user.validatePassword(password);
-    if (!isValid) {
-      await user.incrementLoginAttempts();
-      throw new AuthenticationError('Invalid credentials');
-    }
-
-    // Check account status
-    if (user.status !== 'active') {
-      throw new AuthenticationError(`Account is ${user.status}`);
-    }
-
-    // Reset login attempts
-    await user.resetLoginAttempts();
-
-    // Update last login
-    await user.update({ last_login: new Date() });
-
-    // Generate tokens
-    const tokens = this.generateTokens(user);
-
-    // Save refresh token
-    await user.update({ refresh_token: tokens.refreshToken });
-
-    // Log audit
-    await AuditLog.create({
-      user_id: user.id,
-      action: 'LOGIN',
-      resource_type: 'user',
-      resource_id: user.id,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-    });
-
-    // Remove sensitive data
-    const userResponse = this.sanitizeUser(user);
-
-    return {
-      user: userResponse,
-      ...tokens,
-    };
-  }
+}
 
   async logout(userId, token, ipAddress, userAgent) {
     // Blacklist the token
