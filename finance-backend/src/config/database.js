@@ -16,7 +16,7 @@ if (process.env.DATABASE_URL) {
     },
     logging: false,
     define: {
-      underscored: true, // This will map createdAt -> created_at
+      underscored: true,
       timestamps: true,
       createdAt: 'created_at',
       updatedAt: 'updated_at',
@@ -54,9 +54,16 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
     
-    // Force sync to create all tables with correct schema
-    // Use { force: true } to recreate tables (only for first deployment)
-    await sequelize.sync({ alter: true });
+    // Drop all tables and recreate to fix constraint issues
+    // This will reset your database - run this once
+    if (process.env.RESET_DATABASE === 'true') {
+      console.log('⚠️ Resetting database...');
+      await sequelize.drop();
+      console.log('✅ Database dropped');
+    }
+    
+    // Sync models without altering (safer for production)
+    await sequelize.sync({ alter: false });
     console.log('✅ Database models synchronized');
     
     return true;

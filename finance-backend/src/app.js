@@ -9,7 +9,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
 // Import database
-const { connectDB } = require('./config/database');
+const { sequelize, connectDB } = require('./config/database');
 const redisClient = require('./config/redis');
 
 const app = express();
@@ -20,9 +20,9 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Trust proxy for Render
 app.set('trust proxy', 1);
 
+// CORS configuration
 const corsOptions = {
   origin: [
-    'https://finance-data-processing-and-access-5h1o.onrender.com',
     'https://finance-data-processing-and-access-5h1o.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
@@ -35,13 +35,12 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Also handle preflight requests
 app.options('*', cors(corsOptions));
 
 // Security middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false,
 }));
 
 // Compression
@@ -57,32 +56,122 @@ app.use(morgan('combined'));
 // Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Database connection
-connectDB();
+// ============ DATABASE INITIALIZATION ============
+let dbConnected = false;
 
-const initModels = () => {
+// Initialize database and models
+(async () => {
   try {
-    require('./models/index');
-    console.log('✅ Model associations loaded');
+    // Connect to database
+    dbConnected = await connectDB();
+    
+    if (!dbConnected) {
+      console.error('❌ Database connection failed. Please check your configuration.');
+      if (process.env.NODE_ENV === 'production') {
+        console.log('⚠️ Continuing without database for now...');
+      } else {
+        process.exit(1);
+      }
+    }
+    
+    // Load model associations
+    try {
+      require('./models/index');
+      console.log('✅ Model associations loaded');
+    } catch (error) {
+      console.error('❌ Failed to load associations:', error.message);
+    }
+    
+    // Check if roles exist, if not create them
+    if (dbConnected) {
+      const Role = require('./models/Role');
+      const User = require('./models/User');
+      
+      const roleCount = await Role.count();
+      
+      if (roleCount === 0) {
+        console.log('📦 Seeding initial data...');
+        
+        // Create roles
+        const roles = await Role.bulkCreate([
+          {
+            name: 'admin',
+            permissions: Role.PERMISSIONS.ADMIN,
+            description: 'Full system access',
+            is_system: true,
+          },
+          {
+            name: 'analyst',
+            permissions: Role.PERMISSIONS.ANALYST,
+            description: 'Can view and create records',
+            is_system: true,
+          },
+          {
+            name: 'viewer',
+            permissions: Role.PERMISSIONS.VIEWER,
+            description: 'Read-only access',
+            is_system: true,
+          },
+        ]);
+        console.log('✅ Roles created');
+        
+        // Create admin user
+        const adminRole = roles.find(r => r.name === 'admin');
+        await User.create({
+          email: 'admin@finance.com',
+          password_hash: 'Admin@123456',
+          full_name: 'System Administrator',
+          role_id: adminRole.id,
+          status: 'active',
+        });
+        console.log('✅ Admin user created');
+        
+        // Create analyst user
+        const analystRole = roles.find(r => r.name === 'analyst');
+        await User.create({
+          email: 'analyst@finance.com',
+          password_hash: 'Analyst@123456',
+          full_name: 'Financial Analyst',
+          role_id: analystRole.id,
+          status: 'active',
+        });
+        console.log('✅ Analyst user created');
+        
+        // Create viewer user
+        const viewerRole = roles.find(r => r.name === 'viewer');
+        await User.create({
+          email: 'viewer@finance.com',
+          password_hash: 'Viewer@123456',
+          full_name: 'Dashboard Viewer',
+          role_id: viewerRole.id,
+          status: 'active',
+        });
+        console.log('✅ Viewer user created');
+        
+        console.log('🎉 Database seeding completed!');
+      } else {
+        console.log('✅ Database already has data');
+      }
+    }
   } catch (error) {
-    console.error('❌ Failed to load associations:', error.message);
+    console.error('❌ Initialization error:', error.message);
   }
-};
+})();
 
-// Call this after database connection
-connectDB().then(() => {
-  initModels();
+// Redis connection (optional)
+redisClient.connect().catch(err => {
+  console.warn('Redis connection failed, continuing without cache');
 });
 
-// Setup endpoint to initialize database
+// ============ SETUP ENDPOINT ============
 app.get('/api/setup', async (req, res) => {
   try {
-    const { sequelize } = require('./config/database');
     const Role = require('./models/Role');
     const User = require('./models/User');
     
     // Force sync
     await sequelize.sync({ force: true });
+    console.log('✅ Database synced');
     
     // Create roles
     const roles = await Role.bulkCreate([
@@ -137,6 +226,7 @@ app.get('/api/setup', async (req, res) => {
     });
     
     res.json({ 
+      status: 'success',
       message: 'Database setup complete!',
       users: {
         admin: 'admin@finance.com / Admin@123456',
@@ -150,9 +240,42 @@ app.get('/api/setup', async (req, res) => {
   }
 });
 
-// Redis connection (optional)
-redisClient.connect().catch(err => {
-  console.warn('Redis connection failed, continuing without cache');
+// ============ RESET DATABASE ENDPOINT ============
+app.post('/api/admin/reset-db', async (req, res) => {
+  try {
+    const Role = require('./models/Role');
+    const User = require('./models/User');
+    
+    // Drop all tables
+    await sequelize.drop();
+    console.log('Database dropped');
+    
+    // Recreate tables
+    await sequelize.sync({ force: true });
+    console.log('Tables recreated');
+    
+    // Create roles
+    const roles = await Role.bulkCreate([
+      { name: 'admin', permissions: Role.PERMISSIONS.ADMIN, description: 'Full system access', is_system: true },
+      { name: 'analyst', permissions: Role.PERMISSIONS.ANALYST, description: 'Can view and create records', is_system: true },
+      { name: 'viewer', permissions: Role.PERMISSIONS.VIEWER, description: 'Read-only access', is_system: true },
+    ]);
+    
+    // Create users
+    const adminRole = roles.find(r => r.name === 'admin');
+    await User.create({ email: 'admin@finance.com', password_hash: 'Admin@123456', full_name: 'System Administrator', role_id: adminRole.id, status: 'active' });
+    
+    const analystRole = roles.find(r => r.name === 'analyst');
+    await User.create({ email: 'analyst@finance.com', password_hash: 'Analyst@123456', full_name: 'Financial Analyst', role_id: analystRole.id, status: 'active' });
+    
+    const viewerRole = roles.find(r => r.name === 'viewer');
+    await User.create({ email: 'viewer@finance.com', password_hash: 'Viewer@123456', full_name: 'Dashboard Viewer', role_id: viewerRole.id, status: 'active' });
+    
+    res.json({ message: 'Database reset successful! Users created.' });
+  } catch (error) {
+    console.error('Reset error:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // ============ DOCUMENTATION ROUTES ============
@@ -167,10 +290,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     displayRequestDuration: true,
     filter: true,
     tryItOutEnabled: true,
-    urls: [{
-      url: '/api-docs.json',
-      name: 'Production API'
-    }]
   }
 }));
 
@@ -213,17 +332,41 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV,
+    database: dbConnected ? 'connected' : 'disconnected',
+    redis: redisClient.isConnected ? 'connected' : 'disabled',
     version: '1.0.0',
-    services: {
-      database: 'connected',
-      redis: redisClient.isConnected ? 'connected' : 'disabled'
-    },
-    documentation: {
+    endpoints: {
       swagger: `${req.protocol}://${req.get('host')}/api-docs`,
       guide: `${req.protocol}://${req.get('host')}/hr-review`,
-      postman: `${req.protocol}://${req.get('host')}/api/postman-collection.json`
+      postman: `${req.protocol}://${req.get('host')}/api/postman-collection.json`,
+      setup: `${req.protocol}://${req.get('host')}/api/setup`
     }
   });
+});
+
+// Debug endpoint to check database status
+app.get('/debug/db-status', async (req, res) => {
+  try {
+    const Role = require('./models/Role');
+    const User = require('./models/User');
+    
+    const roleCount = await Role.count();
+    const userCount = await User.count();
+    const users = await User.findAll({ 
+      attributes: ['email', 'role_id', 'status'],
+      raw: true 
+    });
+    
+    res.json({
+      database_connected: dbConnected,
+      roles_count: roleCount,
+      users_count: userCount,
+      users: users,
+      message: roleCount === 0 ? 'Database empty - run /api/setup' : 'Database has data'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // API routes
@@ -249,36 +392,43 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
   console.error(err.stack);
+  
   res.status(err.statusCode || 500).json({
     status: 'error',
     code: err.errorCode || 'INTERNAL_SERVER_ERROR',
     message: process.env.NODE_ENV === 'production' 
       ? 'An unexpected error occurred' 
       : err.message,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
-  console.log(`📖 HR Guide: http://localhost:${PORT}/hr-review`);
-  console.log(`📮 Postman: http://localhost:${PORT}/api/postman-collection.json`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(async () => {
-    console.log('HTTP server closed');
-    if (redisClient.client) {
-      await redisClient.client.quit();
-    }
-    process.exit(0);
+// Start server only if not in test mode
+if (require.main === module) {
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
+    console.log(`📖 HR Guide: http://localhost:${PORT}/hr-review`);
+    console.log(`🔧 Setup: http://localhost:${PORT}/api/setup`);
+    console.log(`🔍 DB Status: http://localhost:${PORT}/debug/db-status\n`);
   });
-});
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(async () => {
+      console.log('HTTP server closed');
+      if (redisClient.client) {
+        await redisClient.client.quit();
+      }
+      if (sequelize) {
+        await sequelize.close();
+      }
+      process.exit(0);
+    });
+  });
+}
 
 module.exports = app;

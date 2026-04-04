@@ -89,7 +89,12 @@ User.prototype.validatePassword = async function(password) {
   if (!password || !this.password_hash) {
     return false;
   }
-  return bcrypt.compare(password, this.password_hash);
+  try {
+    return await bcrypt.compare(password, this.password_hash);
+  } catch (error) {
+    console.error('Password validation error:', error.message);
+    return false;
+  }
 };
 
 User.prototype.incrementLoginAttempts = async function() {
