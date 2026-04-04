@@ -20,13 +20,24 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Trust proxy for Render
 app.set('trust proxy', 1);
 
-// CORS configuration for production
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+const corsOptions = {
+  origin: [
+    'https://finance-data-processing-and-access-5h1o.onrender.com',
+    'https://finance-data-processing-and-access-5h1o.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://*.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Also handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Security middleware
 app.use(helmet({

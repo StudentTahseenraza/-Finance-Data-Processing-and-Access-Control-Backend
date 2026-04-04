@@ -60,14 +60,13 @@ const options = {
         \`\`\`
         
         ## 🔗 Resources
-        - [Postman Collection](https://www.postman.com/collections/your-collection-id)
         - [GitHub Repository](https://github.com/StudentTahseenraza/-Finance-Data-Processing-and-Access-Control-Backend)
-        - [Testing Guide](/guide)
+        - [HR Review Guide](/hr-review)
       `,
       contact: {
         name: 'API Support Team',
         email: 'support@finance-dashboard.com',
-        url: 'https://github.com/yourusername/finance-backend',
+        url: 'https://github.com/StudentTahseenraza/-Finance-Data-Processing-and-Access-Control-Backend',
       },
       license: {
         name: 'MIT',
@@ -76,10 +75,8 @@ const options = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://finance-backend-api.vercel.app/api/v1'
-          : 'http://localhost:3000/api/v1',
-        description: process.env.NODE_ENV === 'production' ? 'Production Server' : 'Development Server',
+        url: 'https://finance-data-processing-and-access-5h1o.onrender.com/api/v1',
+        description: 'Production Server (Render) - Live API',
       },
       {
         url: 'http://localhost:3000/api/v1',
@@ -120,7 +117,12 @@ const options = {
           type: 'object',
           required: ['email', 'password', 'full_name'],
           properties: {
-            email: { type: 'string', format: 'email', example: 'newuser@example.com' },
+            email: { 
+              type: 'string', 
+              format: 'email', 
+              example: 'newuser@example.com',
+              description: 'Valid email address'
+            },
             password: { 
               type: 'string', 
               format: 'password', 
@@ -129,7 +131,13 @@ const options = {
               example: 'Password@123',
               description: 'Must contain uppercase, lowercase, number, and special character'
             },
-            full_name: { type: 'string', minLength: 2, maxLength: 100, example: 'John Doe' }
+            full_name: { 
+              type: 'string', 
+              minLength: 2, 
+              maxLength: 100, 
+              example: 'John Doe',
+              description: 'Full name of the user'
+            }
           }
         },
         
@@ -161,7 +169,7 @@ const options = {
             date: { 
               type: 'string', 
               format: 'date', 
-              example: '2024-04-01',
+              example: '2024-04-04',
               description: 'Transaction date (YYYY-MM-DD)'
             },
             description: { 
@@ -185,6 +193,30 @@ const options = {
           }
         },
         
+        // Update Record Schema
+        UpdateRecordRequest: {
+          type: 'object',
+          properties: {
+            amount: { 
+              type: 'number', 
+              format: 'float', 
+              minimum: 0.01, 
+              example: 2000.00,
+              description: 'Updated transaction amount'
+            },
+            category: { 
+              type: 'string', 
+              example: 'Bonus',
+              description: 'Updated category'
+            },
+            description: { 
+              type: 'string', 
+              example: 'Updated description',
+              description: 'Updated description'
+            }
+          }
+        },
+        
         // Response Schemas
         SuccessResponse: {
           type: 'object',
@@ -202,6 +234,38 @@ const options = {
             code: { type: 'string' },
             message: { type: 'string' },
             details: { type: 'object' }
+          }
+        },
+        
+        // Dashboard Summary Response
+        DashboardSummary: {
+          type: 'object',
+          properties: {
+            total_income: { type: 'number', example: 5000.00 },
+            total_expense: { type: 'number', example: 1500.00 },
+            net_balance: { type: 'number', example: 3500.00 },
+            total_transactions: { type: 'integer', example: 10 },
+            income_count: { type: 'integer', example: 3 },
+            expense_count: { type: 'integer', example: 7 }
+          }
+        },
+        
+        // User Response
+        User: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            email: { type: 'string', format: 'email' },
+            full_name: { type: 'string' },
+            role: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' },
+                name: { type: 'string', enum: ['admin', 'analyst', 'viewer'] }
+              }
+            },
+            status: { type: 'string', enum: ['active', 'inactive'] },
+            created_at: { type: 'string', format: 'date-time' }
           }
         }
       }
