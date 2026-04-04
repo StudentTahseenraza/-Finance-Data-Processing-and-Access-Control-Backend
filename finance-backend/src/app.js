@@ -24,6 +24,7 @@ app.set('trust proxy', 1);
 const corsOptions = {
   origin: [
     'https://finance-data-processing-and-access-5h1o.onrender.com',
+    'https://finance-data-processing-and-access-ecru.vercel.app',
     'http://localhost:3000',
     'http://localhost:5173',
     'https://*.onrender.com'
