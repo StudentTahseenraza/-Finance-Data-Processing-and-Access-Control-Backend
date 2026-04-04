@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Records from './pages/Records'
 import AddRecord from './pages/AddRecord'
+import Analytics from './pages/Analytics'
 import Navbar from './components/Navbar'
 import { AuthProvider } from './context/AuthContext'
 
@@ -27,6 +28,14 @@ function App() {
             <>
               <Navbar />
               <Records />
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute requirePermission="canViewAnalytics">
+            <>
+              <Navbar />
+              <Analytics />
             </>
           </ProtectedRoute>
         } />

@@ -41,6 +41,9 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-gray-700 hover:text-blue-600 transition">Dashboard</Link>
             <Link to="/records" className="text-gray-700 hover:text-blue-600 transition">Records</Link>
+            {permissions.canViewAnalytics && (
+              <Link to="/analytics" className="text-gray-700 hover:text-blue-600 transition">Analytics</Link>
+            )}
             {permissions.canCreateRecords && (
               <Link to="/add-record" className="text-gray-700 hover:text-blue-600 transition">Add Record</Link>
             )}
@@ -76,6 +79,15 @@ const Navbar = () => {
               >
                 Records
               </Link>
+              {permissions.canViewAnalytics && (
+                <Link 
+                  to="/analytics" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-gray-700 hover:text-blue-600 transition py-2"
+                >
+                  Analytics
+                </Link>
+              )}
               {permissions.canCreateRecords && (
                 <Link 
                   to="/add-record" 
