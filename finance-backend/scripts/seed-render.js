@@ -3,7 +3,7 @@ const Role = require('../src/models/Role');
 const User = require('../src/models/User');
 
 async function seedDatabase() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Starting database seeding...');
   
   try {
     // Sync all models
@@ -14,6 +14,8 @@ async function seedDatabase() {
     const roleCount = await Role.count();
     
     if (roleCount === 0) {
+      console.log('📦 Creating roles...');
+      
       // Create roles
       const roles = await Role.bulkCreate([
         {
@@ -79,7 +81,7 @@ async function seedDatabase() {
         role_id: adminRole.id,
         status: 'active',
       });
-      console.log('✅ Admin user created');
+      console.log('✅ Admin user created (admin@finance.com / Admin@123456)');
       
       // Create analyst user
       const analystRole = roles.find(r => r.name === 'analyst');
@@ -90,7 +92,7 @@ async function seedDatabase() {
         role_id: analystRole.id,
         status: 'active',
       });
-      console.log('✅ Analyst user created');
+      console.log('✅ Analyst user created (analyst@finance.com / Analyst@123456)');
       
       // Create viewer user
       const viewerRole = roles.find(r => r.name === 'viewer');
@@ -101,9 +103,9 @@ async function seedDatabase() {
         role_id: viewerRole.id,
         status: 'active',
       });
-      console.log('✅ Viewer user created');
+      console.log('✅ Viewer user created (viewer@finance.com / Viewer@123456)');
       
-      console.log('🎉 Database seeding completed!');
+      console.log('🎉 Database seeding completed successfully!');
     } else {
       console.log('✅ Roles already exist, skipping seed');
     }
@@ -111,8 +113,10 @@ async function seedDatabase() {
     process.exit(0);
   } catch (error) {
     console.error('❌ Seeding error:', error.message);
+    console.error('Stack:', error.stack);
     process.exit(1);
   }
 }
 
+// Run the seed function
 seedDatabase();
